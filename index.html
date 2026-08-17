@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulador de actividades y consignas | Módulo 1 Tema 2</title>
+<style>
+:root{--red:#FF0050;--dark:#231F20;--wine:#3A2028;--soft:#FFF1F5;--line:#E7E2E4;--muted:#6B6467;--white:#FFFFFF;--canvas-red:#C72C2C;--canvas-dark:#252525;--green:#079447}
+*{box-sizing:border-box}html,body{margin:0;padding:0;background:#FFFFFF;font-family:Arial,Helvetica,sans-serif;color:var(--dark)}button,input,textarea,select{font:inherit}
+#simulator{width:calc(100% - 20px);max-width:none;margin:10px auto;padding:0}.intro{background:linear-gradient(135deg,#231F20 0%,#30292B 65%,#5A1A31 130%);color:white;border-radius:18px;padding:18px 24px;margin-bottom:18px;position:relative;overflow:hidden}.intro:after{content:"";position:absolute;width:240px;height:240px;border:1px solid rgba(255,255,255,.10);border-radius:50%;right:-80px;top:-110px}.intro p{margin:0;font-size:16.5px;line-height:1.45;font-weight:400;position:relative;z-index:2}
+.stage{
+  background:var(--dark);
+  border-radius:14px;
+  padding:16px;
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+  min-height:0;
+}.canvas-wrap{
+  background:#fff;
+  border-radius:14px;
+  overflow:hidden;
+  width:100%;
+  height:470px;
+  min-height:0;
+  position:relative;
+  order:2;
+  transition:height .2s ease;
+}#screen{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+}.side{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 156px;
+  gap:12px;
+  min-height:0;
+  align-items:stretch;
+  order:1;
+}.info{background:#fff;border-radius:14px;padding:12px 16px;border-left:7px solid var(--red);overflow:hidden;color:var(--dark);min-height:100px}.eyebrow{color:var(--red);font-size:12px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px}.info h2{margin:0 0 5px;font-size:19px;line-height:1.12;color:var(--dark)}.info p{margin:0 0 6px;color:#4E474A;line-height:1.35;font-size:12.5px}.info ul{margin:8px 0 0;padding:0;list-style:none;display:grid;gap:7px}.info li{display:flex;gap:8px;align-items:flex-start;font-size:13px;line-height:1.3;color:var(--dark)}.num{width:26px;height:26px;min-width:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--dark);color:#fff;font-weight:900;font-size:13px}.tip{margin-top:6px;background:var(--soft);border-radius:8px;padding:7px 9px;color:#5A3441;font-size:11.8px;line-height:1.3;font-weight:700}.actions{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  align-items:stretch;
+  justify-content:center;
+  align-self:stretch;
+}.btn{
+  border:0;
+  border-radius:8px;
+  font-weight:900;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:100%;
+  min-height:46px;
+  height:46px;
+  padding:0 12px;
+  white-space:nowrap;
+  font-size:14px;
+}.btn.secondary{background:#fff;color:var(--dark)}.btn.primary{background:var(--red);color:#fff}.btn:disabled{opacity:.45;cursor:not-allowed}.progress{margin:0 0 14px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 14px}.progress-top{display:flex;justify-content:space-between;font-size:12px;font-weight:800;margin-bottom:7px}.track{height:7px;background:#EEE;border-radius:999px;overflow:hidden}.fill{height:100%;background:var(--red);width:14.285%;transition:.3s}
+.canvas{
+  width:1280px;
+  height:470px;
+  min-width:1280px;
+  min-height:0;
+  background:#fff;
+  display:grid;
+  grid-template-columns:70px 250px 1fr;
+  align-items:stretch;
+  color:#27313A;
+  position:absolute;
+  left:0;
+  top:0;
+  transform-origin:top left;
+}.global-nav{
+  background:#252525;
+  color:#fff;
+  padding-top:12px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:16px;
+  height:100%;
+  min-height:0;
+  align-self:stretch;
+}.brand-arrow{width:40px;height:40px;position:relative}.brand-arrow:before,.brand-arrow:after{content:"";position:absolute;top:4px;width:0;height:0;border-top:16px solid transparent;border-bottom:16px solid transparent;border-left:14px solid #F33}.brand-arrow:before{left:0}.brand-arrow:after{left:13px}.nav-mini{width:34px;height:34px;border:1px solid #666;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px}.course-nav{border-right:1px solid #DDD;padding:18px 12px;overflow:hidden}.course-nav .course-label{font-size:11px;color:#747474;margin-bottom:10px}.course-link{padding:8px 10px;color:#C62828;font-size:13px;border-left:3px solid transparent}.course-link.active{color:#24313B;background:#F7F7F7;border-left-color:#24313B;font-weight:800}.main{padding:0;overflow:hidden;height:100%}.topbar{
+  height:58px;
+  border-bottom:1px solid #DDD;
+  display:flex;
+  align-items:center;
+  gap:14px;
+  padding:0 22px;
+  font-size:14px;
+  white-space:nowrap;
+  overflow:hidden;
+}.hamb{font-size:26px;color:#665B5E;flex-shrink:0}.topbar>span:last-child{white-space:nowrap;font-size:13px}.topbar strong{font-size:16px;white-space:nowrap;flex-shrink:0}.content{
+  padding:18px 24px 18px;
+  height:calc(100% - 58px);
+  overflow:hidden;
+}.module{border:1px solid #DDD;border-left:5px solid #089347;border-radius:2px;overflow:hidden}.module-head,.group-head,.module-row{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #E5E5E5}.module-head{background:#F2F3F4;padding:14px 16px;font-size:18px;font-weight:800}.group-head{padding:13px 16px;font-size:16px;font-weight:800}.module-row{padding:13px 16px;font-size:14px}.module-row:last-child{border-bottom:0}.dot-green{width:22px;height:22px;border-radius:50%;background:#079447;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900}.row-left{display:flex;align-items:center;gap:10px}.file-icon{color:#079447;font-size:17px}.fake-plus{font-size:26px;color:#777}.modal-layer{position:absolute;inset:0;background:rgba(255,255,255,.78);display:flex;align-items:center;justify-content:center;padding:26px}.modal{width:72%;background:white;border:1px solid #DDD;box-shadow:0 10px 28px rgba(0,0,0,.20);border-radius:4px;overflow:hidden}.modal-title{padding:18px 24px;border-bottom:1px solid #DDD;font-size:20px;display:flex;justify-content:space-between}.modal-body{padding:24px}.fieldline{display:flex;align-items:center;gap:12px;margin-bottom:16px}.fieldline label{font-size:15px}.selectbox{min-width:250px;border:1px solid #506070;border-radius:3px;padding:9px 12px;background:white;font-size:16px}.option-list{border:1px solid #ADB6BD;background:white;border-radius:3px;margin-top:6px;overflow:hidden}.option{padding:10px 14px;border-bottom:1px solid #EEE;font-size:15px}.option:last-child{border-bottom:0}.option.active{background:#2667C9;color:#fff}.form-title{font-size:15px;margin:0 0 6px}.text-input{width:100%;border:1px solid #9AA7B2;border-radius:4px;padding:11px 12px;font-size:15px}.toolbar{display:flex;gap:14px;padding:10px 0;border-bottom:1px solid #DDD;font-size:13px}.editor{min-height:172px;height:auto;border:1px solid #9AA7B2;border-top:0;background:#fff;padding:14px 16px;overflow:hidden}.editor.good{background:#FFFBFC}.editor .good-title{font-weight:900;margin-bottom:8px;color:#222}.editor ul{margin:8px 0 0 18px;line-height:1.38;font-size:12.5px;padding-right:8px}.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}.setting{border:1px solid #D9DDE0;border-radius:6px;padding:12px}.setting label{display:block;font-size:12px;font-weight:800;margin-bottom:6px}.setting input,.setting select{width:100%;padding:8px;border:1px solid #AAA;border-radius:4px}.choice-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.choice{border:1px solid #DDD;border-radius:10px;padding:14px;cursor:pointer;background:#fff;transition:.2s}.choice:hover{border-color:var(--red);transform:translateY(-1px)}.choice.selected{border:2px solid var(--red);background:#FFF6F8}.choice strong{display:block;margin-bottom:5px}.feedback{display:none;margin-top:12px;border-radius:9px;padding:11px 12px;font-size:13px;line-height:1.4}.feedback.show{display:block}.feedback.good{background:#ECFFF3;color:#145B35;border:1px solid #B8E9CA}.feedback.bad{background:#FFF1F3;color:#7A2638;border:1px solid #F1C0CB}.builder{display:grid;grid-template-columns:1fr 1fr;gap:14px}.builder-fields{display:grid;gap:10px}.builder-fields label{font-size:12px;font-weight:800}.builder-fields input,.builder-fields textarea{width:100%;border:1px solid #C9CED3;border-radius:7px;padding:9px 10px}.builder-fields textarea{min-height:62px;resize:vertical}.preview{background:#FAFAFA;border:1px solid #DDD;border-radius:10px;padding:16px}.preview h4{margin:0 0 10px;font-size:14px}.preview-text{font-size:13px;line-height:1.5;color:#424242}.checklist{display:grid;gap:10px}.check-item{border:1px solid #DDD;border-radius:8px;padding:11px 12px;display:flex;gap:9px;align-items:flex-start;background:#fff}.check{width:20px;height:20px;border-radius:50%;background:#079447;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900}.summary{background:#FFF;border:1px solid #DDD;border-radius:12px;padding:18px}.summary h3{margin:0 0 12px}.summary-box{background:#F8F8F8;border-radius:9px;padding:14px;margin-top:10px;font-size:13px;line-height:1.5}
+@media(max-width:1050px){.stage{grid-template-columns:1fr}.side{min-height:auto}.canvas-wrap{min-height:540px}}@media(max-width:760px){#simulator{padding:8px}.intro{padding:14px 16px}.intro p{font-size:15px}.canvas{grid-template-columns:46px 170px 1fr}.content{padding:14px}.choice-grid{grid-template-columns:1fr}.builder{grid-template-columns:1fr}.side{grid-template-rows:auto auto}}
+
+.main-card{
+  background:linear-gradient(135deg,#231F20 0%,#30292B 55%,#FF0050 180%);
+  color:white;
+  border-radius:12px;
+  padding:34px;
+  position:relative;
+  overflow:hidden;
+  width:100%;
+}
+.main-card:after{
+  content:"";
+  position:absolute;
+  width:280px;
+  height:280px;
+  border:2px solid rgba(255,255,255,.12);
+  border-radius:50%;
+  right:-90px;
+  top:-100px;
+}
+.resource-title-row{
+  display:flex;
+  gap:16px;
+  align-items:flex-start;
+  position:relative;
+  z-index:2;
+}
+.resource-title-icon{
+  width:54px;
+  height:54px;
+  min-width:54px;
+  border:1px solid rgba(255,255,255,.25);
+  border-radius:12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.resource-title-icon svg{
+  width:30px;
+  height:30px;
+  stroke:var(--red);
+  fill:none;
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+.resource-title-copy h1{
+  margin:0;
+  font-size:34px;
+  line-height:1.15;
+  font-weight:900;
+  color:white;
+}
+.resource-subtitle{
+  margin-top:10px;
+  color:#F7D4E0;
+  font-size:15px;
+  font-weight:700;
+  letter-spacing:.3px;
+}
+.resource-content{
+  margin-top:24px;
+  position:relative;
+  z-index:2;
+}
+.resource-intro{
+  background:white;
+  color:#333;
+  border-radius:10px;
+  padding:20px 22px;
+  line-height:1.65;
+  font-size:15px;
+  margin-bottom:18px;
+}
+.resource-intro p{margin:0}
+.simulator-box{
+  background:white;
+  border-radius:10px;
+  padding:18px;
+  width:100%;
+}
+.simulator-box .stage{
+  margin:0;
+}
+@media(max-width:850px){#simulator{width:calc(100% - 12px);margin:6px auto;}
+  .main-card{padding:24px}
+  .resource-title-copy h1{font-size:28px}
+  .resource-title-row{flex-direction:column}
+  .simulator-box{padding:12px}
+}
+
+
+.builder-status{
+  margin-top:12px;
+  border-radius:8px;
+  padding:10px 12px;
+  font-size:12.5px;
+  line-height:1.4;
+  font-weight:700;
+  background:#FFF1F5;
+  color:#6A3344;
+  border:1px solid #F7D4E0;
+}
+.builder-status.ready{
+  background:#ECFFF3;
+  color:#145B35;
+  border-color:#B8E9CA;
+}
+.course-continue{
+  display:none;
+  width:100%;
+  justify-content:center;
+  align-items:center;
+  gap:12px;
+  padding-top:18px;
+  position:relative;
+  z-index:2;
+}
+.course-continue.show{
+  display:flex;
+}
+.final-action-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:180px;
+  padding:14px 24px;
+  border-radius:6px;
+  font-weight:900;
+  text-decoration:none;
+  cursor:pointer;
+  transition:.25s ease;
+}
+.restart-final-btn{
+  background:#FFFFFF;
+  color:#231F20;
+  border:1px solid rgba(255,255,255,.75);
+}
+.restart-final-btn:hover{
+  background:#FFF1F5;
+}
+.continue-course-btn{
+  background:var(--red);
+  color:#FFFFFF !important;
+  border:1px solid var(--red);
+}
+.continue-course-btn:hover{
+  background:#E30048;
+  color:#FFFFFF !important;
+}
+
+
+
+
+  .canvas-wrap{
+    aspect-ratio:4 / 3;
+  }
+  .actions{
+    grid-template-columns:1fr 1fr;
+  }
+}
+
+
+
+
+
+.info-points{
+  margin:6px 0 0;
+  color:var(--dark);
+  font-size:13px;
+  line-height:1.4;
+}
+
+@media(max-width:850px){
+  .side{grid-template-columns:minmax(0,1fr) 142px;gap:10px}
+  .btn{height:44px;min-height:44px;font-size:13px}
+  .info{padding:10px 13px}
+  .info h2{font-size:17px}
+  .info p,.info-points{font-size:11.5px}
+}
+</style>
+</head>
+<body>
+<div id="simulator">
+  <div class="main-card">
+
+    <div class="resource-title-row">
+      <div class="resource-title-icon">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="4" y="4" width="16" height="16" rx="2"></rect>
+          <path d="M8 8h8"></path>
+          <path d="M8 12h5"></path>
+          <path d="M8 16h6"></path>
+        </svg>
+      </div>
+
+      <div class="resource-title-copy">
+        <h1>Simulador de actividades y consignas</h1>
+        <div class="resource-subtitle">Explora, decide y redacta · Módulo 1 · Tema 2</div>
+      </div>
+    </div>
+
+    <div class="resource-content">
+
+      <div class="resource-intro">
+        <p>
+          Recorre el simulador para reconocer qué tipo de actividad conviene utilizar en Canvas según la evidencia esperada y cómo una consigna clara puede orientar al estudiante sobre qué hacer, cómo hacerlo y qué debe entregar.
+        </p>
+      </div>
+
+      <div class="simulator-box">
+        <div class="stage">
+
+          <div class="side">
+            <aside class="info" id="info"></aside>
+
+            <div class="actions">
+              <button class="btn secondary" id="prevBtn" onclick="prevStep()">← Anterior</button>
+              <button class="btn primary" id="nextBtn" onclick="nextStep()">Siguiente →</button>
+            </div>
+          </div>
+
+          <div class="canvas-wrap">
+            <div id="screen"></div>
+          </div>
+
+        </div>
+      </div>
+
+      <div id="courseContinue" class="course-continue"></div>
+
+    </div>
+  </div>
+</div>
+<script>
+const steps=[
+{label:"Intención pedagógica",eyebrow:"ANTES DE CONFIGURAR",title:"Define qué quieres que haga el estudiante",p:"La herramienta se elige después de definir la acción esperada. Primero piensa en el aprendizaje y en la evidencia que necesitas observar.",bullets:["¿Debe entregar un producto?","¿Debe intercambiar ideas?","¿Debe responder preguntas estructuradas?"],tip:"La intención pedagógica debe orientar la elección de la actividad, no al revés.",type:"module"},
+{label:"Tipos de actividad",eyebrow:"EXPLORA CANVAS",title:"Reconoce las opciones disponibles",p:"Desde un módulo puedes agregar distintos tipos de elementos. Cada uno cumple una función diferente dentro de la experiencia.",bullets:["Tarea: evidencia entregable.","Foro: intercambio y argumentación.","Examen: comprobación estructurada."],tip:"Página, Archivo y URL externa funcionan principalmente como recursos; Tarea, Foro y Examen implican una acción del estudiante.",type:"modal"},
+{label:"Elige la herramienta",eyebrow:"DECISIÓN PEDAGÓGICA",title:"Selecciona según la evidencia",p:"Caso: el estudiante debe elaborar un mapa de organización del aula virtual y subir el archivo para su revisión.",bullets:["Tarea permite recoger una evidencia concreta.","Foro sería mejor si el propósito principal fuera debatir.","Página no recoge una entrega del estudiante."],tip:"Elige la opción que mejor responda al producto esperado.",type:"decision"},
+{label:"Configura la tarea",eyebrow:"CONFIGURACIÓN",title:"La herramienta necesita una consigna",p:"Crear una tarea no termina con ponerle nombre. La descripción debe orientar al estudiante sobre qué hará y cómo lo hará.",bullets:["Nombre claro de la actividad.","Consigna visible y comprensible.","Condiciones de entrega coherentes."],tip:"Una configuración correcta puede seguir siendo confusa si la consigna no orienta.",type:"task"},
+{label:"Construye la consigna",eyebrow:"COMUNICACIÓN EFECTIVA",title:"Redacta una consigna que acompañe",p:"Completa los elementos esenciales. El simulador integrará tus respuestas en una única consigna.",bullets:["Propósito","Acción y proceso","Evidencia y condiciones"],tip:"Si el estudiante puede actuar sin pedir aclaraciones básicas, la consigna está cumpliendo su función.",type:"builder"},
+{label:"Comprueba claridad",eyebrow:"REVISIÓN",title:"Mira la actividad desde el estudiante",p:"Antes de publicar, verifica que la descripción responda las preguntas mínimas que permiten avanzar con autonomía.",bullets:["¿Sé para qué?","¿Sé qué hacer y cómo?","¿Sé qué entregar y cuándo?"],tip:"La claridad reduce dudas y convierte la actividad en una experiencia guiada.",type:"check"},
+{label:"Resultado final",eyebrow:"CIERRE",title:"Herramienta + consigna = experiencia guiada",p:"Una buena actividad articula la herramienta de Canvas con instrucciones claras y condiciones visibles.",bullets:["Actividad seleccionada","Consigna integrada","Criterios de claridad"],tip:"Puedes reiniciar el recurso y probar otra decisión pedagógica.",type:"summary"}
+];
+let current=0;let selectedActivity="Tarea";const state={purpose:"",action:"",process:"",evidence:"",conditions:""};
+function shell(content,active="Módulos"){return `<div class="canvas"><div class="global-nav"><div class="brand-arrow"></div><div class="nav-mini">◯</div><div class="nav-mini">⌂</div><div class="nav-mini">▣</div><div class="nav-mini">◫</div><div class="nav-mini">◷</div></div><div class="course-nav"><div class="course-label">CURSO DEMOSTRATIVO</div>${["Página de Inicio","Módulos","Tareas","Foros de discusión","Anuncios","Evaluaciones","Calificaciones","Páginas","Programa del curso"].map(x=>`<div class="course-link ${x===active?"active":""}">${x}</div>`).join("")}</div><div class="main"><div class="topbar"><span class="hamb">☰</span><strong>GESTIÓN DE PROYECTOS · Curso virtual</strong><span>› ${active}</span></div><div class="content">${content}</div></div></div>`}
+function moduleMarkup(){return shell(`<div class="module"><div class="module-head"><span>Semana 1</span><span class="fake-plus">＋</span></div><div class="group-head"><span>Material obligatorio</span><span class="dot-green">✓</span></div><div class="module-row"><span class="row-left"><span class="file-icon">▤</span> S1-Presentación · Introducción al proyecto</span><span class="dot-green">✓</span></div><div class="module-row"><span class="row-left"><span class="file-icon">🔗</span> S1-Infografía · Del problema al objetivo</span><span class="dot-green">✓</span></div><div class="module-row"><span class="row-left"><span class="file-icon">▶</span> S1-Video · Cómo definir el alcance</span><span class="dot-green">✓</span></div><div class="group-head"><span>Actividades</span><span class="dot-green">✓</span></div><div class="module-row"><span class="row-left"><span class="file-icon">▧</span> S1-Tarea · Mapa inicial del proyecto</span><span class="dot-green">✓</span></div></div>`)}
+function modalMarkup(){return shell(`<div class="module" style="opacity:.22"><div class="module-head"><span>Semana 1</span><span>＋</span></div><div class="group-head"><span>Material obligatorio</span><span>✓</span></div><div class="module-row">S1-Presentación · Introducción al proyecto</div><div class="module-row">S1-Video · Cómo definir el alcance</div></div><div class="modal-layer"><div class="modal"><div class="modal-title"><span>Agregar ítem a Semana 1</span><span>×</span></div><div class="modal-body"><div class="fieldline"><label>Agregar</label><div class="selectbox">Tarea ▾</div><span>al Semana 1</span></div><div class="option-list"><div class="option active">Tarea</div><div class="option">Examen</div><div class="option">Archivo</div><div class="option">Página</div><div class="option">Foro</div><div class="option">Texto de encabezado</div><div class="option">URL externa</div><div class="option">Herramienta externa</div></div></div></div></div>`)}
+function decisionMarkup(){return shell(`<h2 style="margin:0 0 8px">¿Qué actividad elegirías?</h2><p style="margin:0 0 16px;color:#596168">El estudiante debe elaborar un mapa de organización del aula virtual y subir un archivo.</p><div class="choice-grid"><div class="choice" onclick="chooseActivity('Tarea',this)"><strong>▧ Tarea</strong><span>Recoge un producto o evidencia entregable.</span></div><div class="choice" onclick="chooseActivity('Foro',this)"><strong>◌ Foro</strong><span>Favorece intercambio, debate y respuesta entre participantes.</span></div><div class="choice" onclick="chooseActivity('Página',this)"><strong>▤ Página</strong><span>Presenta contenido u orientaciones sin requerir entrega.</span></div></div><div class="feedback" id="feedback"></div>`)}
+function taskMarkup(){return shell(`<div class="form-title">Nombre de la tarea *</div><input class="text-input" value="Mapa de organización del aula virtual"><div class="toolbar">Editar &nbsp; Ver &nbsp; Insertar &nbsp; Formato &nbsp; Herramientas &nbsp; Tabla</div><div class="editor good"><div class="good-title">Consigna</div><ul><li>Organiza una propuesta de aula virtual clara y secuenciada.</li><li>Incluye página de inicio, menú, módulo, recursos y actividades.</li><li>Entrega tu mapa en formato PDF antes de la fecha indicada.</li></ul></div><div class="settings-grid"><div class="setting"><label>Puntos</label><input value="20"></div><div class="setting"><label>Grupo de tareas</label><select><option>Tareas</option></select></div><div class="setting"><label>Tipo de entrega</label><select><option>Entrega en línea</option></select></div><div class="setting"><label>Fecha de entrega</label><input value="20/08/2026"></div></div>`,"Tareas")}
+function builderMarkup(){return shell(`<div class="builder"><div class="builder-fields"><div><label>Propósito</label><input id="fPurpose" placeholder="¿Para qué realizará la actividad?" oninput="syncBuilder()"></div><div><label>Acción esperada</label><input id="fAction" placeholder="Ej. Analiza, diseña, compara..." oninput="syncBuilder()"></div><div><label>Proceso</label><textarea id="fProcess" placeholder="¿Qué pasos seguirá?" oninput="syncBuilder()"></textarea></div><div><label>Evidencia</label><input id="fEvidence" placeholder="¿Qué debe entregar o publicar?" oninput="syncBuilder()"></div><div><label>Condiciones</label><input id="fConditions" placeholder="Formato, fecha, extensión..." oninput="syncBuilder()"></div></div><div class="preview"><h4>Vista previa de la consigna</h4><div class="preview-text" id="previewText">Completa los campos para construir una consigna integrada.</div><div class="builder-status" id="builderStatus">Completa los cinco campos para poder continuar.</div></div></div>`,"Tareas")}
+function checkMarkup(){const text=buildText();return shell(`<h3 style="margin-top:0">Revisión antes de publicar</h3><div class="summary-box">${text}</div><div class="checklist" style="margin-top:14px"><div class="check-item"><span class="check">✓</span><div><strong>Propósito</strong><br><span>El estudiante comprende para qué realizará la actividad.</span></div></div><div class="check-item"><span class="check">✓</span><div><strong>Acción y proceso</strong><br><span>Sabe qué hacer y cómo avanzar paso a paso.</span></div></div><div class="check-item"><span class="check">✓</span><div><strong>Evidencia y condiciones</strong><br><span>Reconoce qué debe entregar y bajo qué condiciones.</span></div></div></div>`,"Tareas")}
+function summaryMarkup(){return shell(`<div class="summary"><h3>Resultado del simulador</h3><div class="summary-box"><strong>Actividad seleccionada:</strong> ${selectedActivity}</div><div class="summary-box"><strong>Consigna:</strong><br>${buildText()}</div><div class="summary-box"><strong>Idea clave:</strong> La herramienta define el espacio; la consigna orienta la experiencia.</div></div>`,"Tareas")}
+function isBuilderComplete(){return Boolean(state.purpose&&state.action&&state.process&&state.evidence&&state.conditions)}
+function buildText(){const p=state.purpose||"comprender el propósito de la actividad";const a=state.action||"desarrolla la actividad propuesta";const pr=state.process||"sigue los pasos indicados en el aula virtual";const ev=state.evidence||"entrega el producto solicitado";const c=state.conditions||"respeta el formato y la fecha establecidos";return `${a}. ${pr}. El propósito es ${p}. Como evidencia, ${ev}. Finalmente, ${c}.`}
+
+const canvasHeights={
+  module:455,
+  modal:430,
+  decision:390,
+  task:540,
+  builder:515,
+  check:500,
+  summary:390
+};
+
+function getCurrentCanvasHeight(){
+  const type=steps[current]?.type || "module";
+  return canvasHeights[type] || 455;
+}
+
+function scaleCanvas(){
+  const wrap=document.querySelector(".canvas-wrap");
+  const canvas=document.querySelector("#screen > .canvas");
+  if(!wrap||!canvas)return;
+
+  const baseH=getCurrentCanvasHeight();
+  canvas.style.height=baseH+"px";
+
+  const scale=wrap.clientWidth/1280;
+  wrap.style.height=(baseH*scale)+"px";
+  canvas.style.transform=`scale(${scale})`;
+}
+window.addEventListener("resize",scaleCanvas);
+
+function render(){
+  const s=steps[current];
+
+  document.getElementById("info").innerHTML=
+    `<div class="eyebrow">${s.eyebrow}</div>
+     <h2>${s.title}</h2>
+     <p>${s.p}</p>
+     <p class="info-points">${s.bullets.join(" · ")}</p>
+     <div class="tip">${s.tip}</div>`;
+
+  let markup="";
+  if(s.type==="module")markup=moduleMarkup();
+  if(s.type==="modal")markup=modalMarkup();
+  if(s.type==="decision")markup=decisionMarkup();
+  if(s.type==="task")markup=taskMarkup();
+  if(s.type==="builder")markup=builderMarkup();
+  if(s.type==="check")markup=checkMarkup();
+  if(s.type==="summary")markup=summaryMarkup();
+
+  document.getElementById("screen").innerHTML=markup;
+
+  const prev=document.getElementById("prevBtn");
+  const next=document.getElementById("nextBtn");
+  const continueBox=document.getElementById("courseContinue");
+
+  prev.disabled=current===0;
+  next.textContent="Siguiente →";
+  next.disabled=current===steps.length-1;
+
+  if(continueBox){
+    continueBox.className="course-continue";
+    continueBox.innerHTML="";
+  }
+
+  if(s.type==="builder"){
+    document.getElementById("fPurpose").value=state.purpose;
+    document.getElementById("fAction").value=state.action;
+    document.getElementById("fProcess").value=state.process;
+    document.getElementById("fEvidence").value=state.evidence;
+    document.getElementById("fConditions").value=state.conditions;
+    syncBuilder();
+  }
+
+  if(s.type==="summary"&&continueBox){
+    continueBox.className="course-continue show";
+    continueBox.innerHTML=
+      `<button class="final-action-btn restart-final-btn" type="button" onclick="restartResource()">↻ Reiniciar recurso</button>
+       <a class="final-action-btn continue-course-btn"
+          href="https://aulad.educad.pe/courses/640/assignments/1051?module_item_id=6026"
+          target="_top"
+          onclick="window.top.location.href=this.href; return false;">
+          Continuar con el curso →
+       </a>`;
+  }
+
+  requestAnimationFrame(scaleCanvas);
+}
+function chooseActivity(name,el){selectedActivity=name;document.querySelectorAll(".choice").forEach(c=>c.classList.remove("selected"));el.classList.add("selected");const f=document.getElementById("feedback");f.classList.add("show");if(name==="Tarea"){f.className="feedback show good";f.innerHTML="<strong>Buena elección.</strong> La tarea es adecuada cuando necesitas recoger un producto o archivo entregable."}else{f.className="feedback show bad";f.innerHTML="<strong>Puede servir en otros propósitos, pero no es la mejor opción para este caso.</strong> Aquí necesitas recoger una evidencia concreta."}}
+function syncBuilder(){state.purpose=document.getElementById("fPurpose")?.value.trim()||"";state.action=document.getElementById("fAction")?.value.trim()||"";state.process=document.getElementById("fProcess")?.value.trim()||"";state.evidence=document.getElementById("fEvidence")?.value.trim()||"";state.conditions=document.getElementById("fConditions")?.value.trim()||"";const p=document.getElementById("previewText");if(p)p.textContent=buildText();const ready=isBuilderComplete();const status=document.getElementById("builderStatus");if(status){status.className=ready?"builder-status ready":"builder-status";status.textContent=ready?"Consigna generada. Ya puedes continuar.":"Completa los cinco campos para poder continuar."}const next=document.getElementById("nextBtn");if(next&&current===4)next.disabled=!ready}
+function restartResource(){
+  current=0;
+  state.purpose="";
+  state.action="";
+  state.process="";
+  state.evidence="";
+  state.conditions="";
+  selectedActivity="Tarea";
+  render();
+  setTimeout(()=>{
+    document.querySelector(".resource-title-row")?.scrollIntoView({behavior:"smooth",block:"start"});
+  },80);
+}
+
+function nextStep(){
+  if(current===4&&!isBuilderComplete()){
+    const status=document.getElementById("builderStatus");
+    if(status){
+      status.className="builder-status";
+      status.textContent="Completa los cinco campos de la consigna antes de continuar.";
+    }
+    return;
+  }
+
+  if(current>=steps.length-1)return;
+
+  current++;
+  render();
+
+  if(current===steps.length-1){
+    setTimeout(()=>{
+      document.getElementById("courseContinue")?.scrollIntoView({behavior:"smooth",block:"center"});
+    },100);
+  }else{
+    setTimeout(()=>{
+      document.querySelector(".stage")?.scrollIntoView({behavior:"smooth",block:"start"});
+    },80);
+  }
+}
+
+function prevStep(){if(current>0){current--;render();setTimeout(()=>document.querySelector(".stage").scrollIntoView({behavior:"smooth",block:"start"}),60)}}render();
+</script>
+</body>
+</html>
